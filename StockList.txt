@@ -1,0 +1,3 @@
+Piano, Acoustic, Fender, Black, 88, 4, 1, 299.99, 2384
+Guitar, Electric, Fender, Red, 6, 10, 1, 149.99, 7649
+Flute, Metal, Fender, Silver, 0, 20, 3, 49.99, 3146

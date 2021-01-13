@@ -13,11 +13,11 @@ public class Instruments {
     private int reserves;
 
     public Instruments(String Instrument) {
-        this(Instrument, "Unknown", "Unknown", "Unknown", 0, 0, 0, "0",0);
+        this(Instrument, "Unknown", "Unknown", "Unknown", 0, 0, 0, 0.00,"0");
     }
     
 
-    public Instruments(String Instrument, String type, String manufacturer, String colour, int numberOfStringsKeysEtc, int stock, double cost, String code, int reserves) {
+    public Instruments(String Instrument, String type, String manufacturer, String colour, int numberOfStringsKeysEtc, int stock,int reserves, double cost, String code) {
         this.Instrument = Instrument;
         this.type = type;
         this.manufacturer = manufacturer;
@@ -104,5 +104,9 @@ public class Instruments {
     @Override
     public String toString() {
         return "Instrument = " + Instrument + ", Type = " + type + ", Manufacturer = " + manufacturer + ", Colour = " + colour + ", No. Of Strings/Keys = " + numberOfStringsKeysEtc + ", Stock = " + stock + ", Reservations = " + reserves+", Cost = £" + cost + ", Product Code = " + ProductCode;
+    } 
+    
+    public String toStringFile() {
+        return Instrument + ", " + type + ", " + manufacturer + ", " + colour + ", " + numberOfStringsKeysEtc + ", " + stock + ", " + reserves+", " + cost + ", " + ProductCode;
     } 
 }

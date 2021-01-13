@@ -1,7 +1,13 @@
 package guitarshop;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GuitarShop {
 
@@ -16,23 +22,19 @@ public class GuitarShop {
         boolean staff = false;
         String input = "";
 
-        Instruments guitar = new Instruments("Guitar", "Electric", "Fender", "Brown", 6, 14, 149.99, "1",0);
-        System.out.println(guitar.toString());
-        Instruments hello = new Instruments("Flute", "Acoustic", "Flutey", "Sliver", 0, 7, 50.00, "5",2);
-        System.out.println(hello.toString());
-        AllStock.add(guitar);
-        AllStock.add(hello);
+        AllStock = FileHandling.readFile();
+        //System.out.println(FileHandling.readFile());
 
         do {
             System.out.println("->Are you; \n1 - staff or \n2 - customer?");
             input = s.next();
             switch (input) {
                 case "1":
-                    if(password()){
-                       staff = true; 
-                    }else{
-                       staff = false;
-                       input = "0";
+                    if (UserName() && password()) {
+                        staff = true;
+                    } else {
+                        staff = false;
+                        input = "0";
                     }
                     break;
                 case "2":
@@ -46,7 +48,7 @@ public class GuitarShop {
         if (staff) {
             String Search = "search";
             do {
-                System.out.println("\n-->Do you want to add/remove/edit/search for Instruments");
+                System.out.println("\n-->Do you want to add/remove/edit/ViewAll/exit/search for Instruments");
                 Search = s.next();
 
                 if (Search.equalsIgnoreCase("add")) {
@@ -57,6 +59,10 @@ public class GuitarShop {
                     edit();
                 } else if (Search.equalsIgnoreCase("search")) {
                     search();
+                } else if (Search.equalsIgnoreCase("viewall")) {
+                    ViewAll();
+                } else if (Search.equalsIgnoreCase("exit")) {
+                    exit();
                 } else {
                     System.out.println("->Invalid Input");
                 }
@@ -66,13 +72,17 @@ public class GuitarShop {
         } else {
             String Search = "search";
             do {
-                System.out.println("\n-->Would you like to search/reserve");
+                System.out.println("\n-->Would you like to search/reserve/ViewAll/exit");
                 Search = s.next();
 
                 if (Search.equalsIgnoreCase("reserve")) {
                     reserve();
                 } else if (Search.equalsIgnoreCase("search")) {
                     search();
+                } else if (Search.equalsIgnoreCase("viewall")) {
+                    ViewAll();
+                } else if (Search.equalsIgnoreCase("exit")) {
+                    exit();
                 } else {
                     System.out.println("->Invalid Input");
                 }
@@ -84,16 +94,7 @@ public class GuitarShop {
     public static void remove() {
         System.out.println("->Type Product Code");
         String ProductCode = s.next();
-
-        int index = -1;
-        for (int i = 0; i < AllStock.size(); i++) {
-            if (ProductCode.equalsIgnoreCase(AllStock.get(i).getProductCode())) {
-                index = i;
-                break;
-            } else if (i == AllStock.size() - 1) {
-                System.out.println("->Product Code Not Found");
-            }
-        }
+        int index = Index(ProductCode);
 
         if (index != -1) {
             System.out.println("-->Are you sure you would like to remove this " + AllStock.get(index).getManufacturer() + " " + AllStock.get(index).getInstrument() + "? yes or no");
@@ -116,20 +117,7 @@ public class GuitarShop {
     public static void edit() {
         System.out.println("->Please type the product code");
         String ProductCode = s.next();
-
-        int index = -1;
-        if (!AllStock.isEmpty()) {
-            for (int i = 0; i < AllStock.size(); i++) {
-                if (ProductCode.equalsIgnoreCase(AllStock.get(i).getProductCode())) {
-                    index = i;
-                    break;
-                } else if (i == AllStock.size() - 1) {
-                    System.out.println("->Product code does not exist");
-                }
-            }
-        } else {
-            System.out.println("->Product not in stock");
-        }
+        int index = Index(ProductCode);
 
         int edit = 0;
         boolean loop = false;
@@ -215,18 +203,9 @@ public class GuitarShop {
     }
 
     public static void search() {
-        System.out.println("->Type Product Code");
+        System.out.println("->Please type the product code");
         String ProductCode = s.next();
-
-        int index = -1;
-        for (int i = 0; i < AllStock.size(); i++) {
-            if (ProductCode.equalsIgnoreCase(AllStock.get(i).getProductCode())) {
-                index = i;
-                break;
-            } else if (i == AllStock.size() - 1) {
-                System.out.println("->Product Code Not Found");
-            }
-        }
+        int index = Index(ProductCode);
 
         if (index != -1) {
             System.out.println(AllStock.get(index).toString());
@@ -249,40 +228,34 @@ public class GuitarShop {
         System.out.print("Enter Number of Reservations: ");
         int reserves = s.nextInt();
         System.out.print("Enter Cost: ");
-        int Cost = s.nextInt();
+        double Cost = s.nextDouble();
 
         int index = -1;
         String ProductCode = "-1";
         do {
             System.out.print("\nEnter ProductCode: ");
             ProductCode = s.next();
+            if (AllStock.isEmpty()) {
+                index = 1;
+            }
             for (int i = 0; i < AllStock.size(); i++) {
                 if (ProductCode.equalsIgnoreCase(AllStock.get(i).getProductCode())) {
                     System.out.println("\n->Product code already exists, choose another code: ");
                     index = -1;
                     break;
-                } else if (i == AllStock.size() - 1) {
+                }else if(i == AllStock.size()-1){
                     index = 1;
                 }
             }
         } while (index == -1);
 
-        AllStock.add(new Instruments(Instrument, type, manufacturer, colour, notes, Stock, Cost, ProductCode,reserves));
+        AllStock.add(new Instruments(Instrument, type, manufacturer, colour, notes, Stock, reserves, Cost, ProductCode));
     }
 
     public static void reserve() {
-        System.out.println("Type in Product Code");
+        System.out.println("->Please type the product code");
         String ProductCode = s.next();
-
-        int index = -1;
-        for (int i = 0; i < AllStock.size(); i++) {
-            if (ProductCode.equalsIgnoreCase(AllStock.get(i).getProductCode())) {
-                index = i;
-                break;
-            } else if (i == AllStock.size() - 1) {
-                System.out.println("->Product Code Not Found");
-            }
-        }
+        int index = Index(ProductCode);
 
         if (index != -1) {
             System.out.println("-->Were you looking for: " + AllStock.get(index).getManufacturer() + " " + AllStock.get(index).getColour() + " " + AllStock.get(index).getType() + " " + AllStock.get(index).getInstrument() + "?");
@@ -300,12 +273,12 @@ public class GuitarShop {
                             if (!(Reserve.equalsIgnoreCase("yes") || Reserve.equalsIgnoreCase("no"))) {
                                 System.out.println("->Invaild Input, try again");
                             } else if (Reserve.equalsIgnoreCase("yes")) {
-                                AllStock.get(index).setStock(AllStock.get(index).getStock()-1);
-                                AllStock.get(index).setReserves(AllStock.get(index).getReserves()+1);
-                                
+                                AllStock.get(index).setStock(AllStock.get(index).getStock() - 1);
+                                AllStock.get(index).setReserves(AllStock.get(index).getReserves() + 1);
+
                                 System.out.println("->Item Reserved");
                                 break;
-                                
+
                             } else {
                                 System.out.println("->Returning to main menu");
                                 break;
@@ -337,17 +310,81 @@ public class GuitarShop {
             } while (true);
         }
     }
-    
-    public static boolean password(){
-        System.out.print("Enter Password:");
-        String Password = s.next();
-        
-        if (Password.equals("Guitar123")){
-            System.out.println("Correct Password");
+
+    public static boolean password() {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+            System.out.print("Enter Password:");
+            String Password = s.next();
+
+            md.update(Password.getBytes());
+            byte[] digest = md.digest();
+            //System.out.println(new String(digest));
+
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < digest.length; i++) {
+                hexString.append(Integer.toHexString(0xFF & digest[i]));
+            }
+            System.out.println(hexString.toString());
+
+            if (Password.equals("Guitar123")) {
+                System.out.println("Correct Password");
+                return true;
+            } else {
+                System.out.println("Password Incorrect");
+                return false;
+            }
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(GuitarShop.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public static boolean UserName() {
+        System.out.print("Enter UserName: ");
+        String UserName = s.next();
+
+        Pattern Code = Pattern.compile("Gui", Pattern.CASE_INSENSITIVE);
+        Matcher Find = Code.matcher(UserName);
+        boolean Found = Find.find();
+        if (Found) {
+            System.out.println("Valid UserName");
             return true;
-        }else{
-            System.out.println("Password Incorrect");
+        } else {
+            System.out.println("Invalid UserName");
             return false;
         }
+    }
+
+    public static int Index(String ProductCode) {
+
+        int index = -1;
+        if (!AllStock.isEmpty()) {
+            for (int i = 0; i < AllStock.size(); i++) {
+                if (ProductCode.equalsIgnoreCase(AllStock.get(i).getProductCode())) {
+                    index = i;
+                    break;
+                } else if (i == AllStock.size() - 1) {
+                    System.out.println("->Product code not found");
+                }
+            }
+        } else {
+            System.out.println("->Product not in stock");
+        }
+        return index;
+    }
+
+    public static void ViewAll() {
+        for (int i = 0; i < AllStock.size(); i++) {
+            System.out.println(AllStock.get(i));
+        }
+    }
+
+    public static void exit() {
+        FileHandling.clearFile();
+        FileHandling.writeFile(AllStock);
+        System.exit(0);
     }
 }
